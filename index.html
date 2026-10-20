@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f5f6f8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121418" media="(prefers-color-scheme: dark)">
+<meta name="description" content="证件照排版：把护照/签证证件照排到 4×6 相纸上，在 CVS / Walgreens 花几毛钱冲印。纯浏览器本地处理。ID / passport photo layout tool for 4x6 prints.">
+<title>证件照排版 · ID Photo Print</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='4' y='10' width='56' height='44' rx='6' fill='%233b6ef5'/%3E%3Ccircle cx='24' cy='28' r='7' fill='%23fff'/%3E%3Cpath d='M12 46c2-8 22-8 24 0' fill='%23fff'/%3E%3Crect x='40' y='22' width='14' height='4' rx='2' fill='%23fff'/%3E%3Crect x='40' y='32' width='10' height='4' rx='2' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">
+      <svg viewBox="0 0 64 64" width="28" height="28"><rect x="4" y="10" width="56" height="44" rx="8" fill="currentColor"/><circle cx="24" cy="28" r="7" fill="var(--bg)"/><path d="M12 46c2-8 22-8 24 0" fill="var(--bg)"/><rect x="40" y="22" width="14" height="4" rx="2" fill="var(--bg)"/><rect x="40" y="32" width="10" height="4" rx="2" fill="var(--bg)"/></svg>
+    </span>
+    <div>
+      <h1 data-i18n="title">证件照排版</h1>
+      <p class="subtitle" data-i18n="subtitle">把证件照排到 4×6 相纸上，几毛钱冲印</p>
+    </div>
+  </div>
+  <button id="langBtn" class="chip" type="button" aria-label="Switch language">EN</button>
+</header>
+
+<main class="wrap">
+  <p class="privacy" role="note"><span aria-hidden="true">🔒</span> <span data-i18n="privacy">照片只在你的浏览器本地处理，不会上传到任何服务器。</span></p>
+
+  <div class="grid">
+    <!-- Left column: photo + crop -->
+    <section class="card" id="stepPhoto">
+      <h2><span class="num">1</span><span data-i18n="s1">选择照片与尺寸</span></h2>
+
+      <label class="upload" for="file">
+        <input id="file" type="file" accept="image/*">
+        <span class="upload-icon" aria-hidden="true">＋</span>
+        <span>
+          <strong data-i18n="upload">选择照片 / 拍照</strong>
+          <small data-i18n="uploadHint">白色或浅色背景、正面免冠，光线均匀</small>
+        </span>
+      </label>
+      <p id="fileInfo" class="muted small" hidden></p>
+
+      <div class="field">
+        <label for="preset" data-i18n="size">证件照尺寸</label>
+        <select id="preset"></select>
+      </div>
+      <div id="customRow" class="row3" hidden>
+        <div class="field"><label for="customW" data-i18n="width">宽</label><input id="customW" type="number" inputmode="decimal" min="5" max="200" step="0.1" value="35"></div>
+        <div class="field"><label for="customH" data-i18n="height">高</label><input id="customH" type="number" inputmode="decimal" min="5" max="200" step="0.1" value="45"></div>
+        <div class="field"><label for="customUnit" data-i18n="unit">单位</label>
+          <select id="customUnit"><option value="mm">mm</option><option value="in">inch</option></select></div>
+      </div>
+    </section>
+
+    <section class="card" id="stepCrop">
+      <h2><span class="num">2</span><span data-i18n="s2">调整裁剪</span></h2>
+      <div class="editor-wrap" id="editorWrap">
+        <div class="editor" id="editor">
+          <canvas id="editorCanvas" aria-label="crop editor"></canvas>
+          <div class="editor-empty" id="editorEmpty" data-i18n="editorEmpty">先选择一张照片</div>
+        </div>
+      </div>
+      <p class="muted small center" data-i18n="cropHint">拖动移动 · 双指或滚轮缩放</p>
+      <div class="field slider">
+        <label for="zoom"><span data-i18n="zoom">缩放</span> <output id="zoomOut">1.00×</output></label>
+        <input id="zoom" type="range" min="0" max="1000" step="1" value="279">
+      </div>
+      <div class="field slider">
+        <label for="rot"><span data-i18n="rotate">旋转</span> <output id="rotOut">0°</output></label>
+        <input id="rot" type="range" min="-15" max="15" step="0.1" value="0">
+      </div>
+      <div class="inline">
+        <label class="switch"><input id="guides" type="checkbox" checked><span data-i18n="showGuides">显示参考线</span></label>
+        <button id="resetCrop" class="btn ghost small" type="button" data-i18n="reset">重置</button>
+      </div>
+      <div id="guideLegend" class="legend small"></div>
+    </section>
+
+    <!-- Right column: layout + export -->
+    <section class="card" id="stepLayout">
+      <h2><span class="num">3</span><span data-i18n="s3">排版到相纸</span></h2>
+      <div class="row2">
+        <div class="field">
+          <label for="paper" data-i18n="paper">相纸</label>
+          <select id="paper"></select>
+        </div>
+        <div class="field">
+          <label for="orient" data-i18n="orient">方向</label>
+          <select id="orient">
+            <option value="auto" data-i18n="orientAuto">自动（放最多）</option>
+            <option value="landscape" data-i18n="orientLand">横向</option>
+            <option value="portrait" data-i18n="orientPort">竖向</option>
+          </select>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="gap"><span data-i18n="gap">间距</span> (mm)</label><input id="gap" type="number" inputmode="decimal" min="0" max="20" step="0.5" value="2"></div>
+        <div class="field"><label for="margin"><span data-i18n="margin">边距</span> (mm)</label><input id="margin" type="number" inputmode="decimal" min="0" max="20" step="0.5" value="2"></div>
+      </div>
+      <label class="switch"><input id="compact" type="checkbox" checked><span data-i18n="compact">放不下时自动缩小间距/边距，多放几张</span></label>
+      <label class="switch"><input id="cutlines" type="checkbox" checked><span data-i18n="cutlines">灰色裁切线 / 裁切标记</span></label>
+      <label class="switch"><input id="mixed" type="checkbox"><span data-i18n="mixed">剩余空间用小尺寸填充</span></label>
+      <div class="field" id="mixedRow" hidden>
+        <label for="mixedPreset" data-i18n="mixedSize">填充尺寸</label>
+        <select id="mixedPreset"></select>
+      </div>
+
+      <div class="sheet-wrap">
+        <canvas id="sheetCanvas" aria-label="print sheet preview"></canvas>
+      </div>
+      <p class="count"><strong id="count" data-count="0">—</strong> <span id="sheetInfo" class="muted small"></span></p>
+      <p id="layoutNote" class="muted small" hidden></p>
+    </section>
+
+    <section class="card" id="stepExport">
+      <h2><span class="num">4</span><span data-i18n="s4">导出并冲印</span></h2>
+      <div class="actions">
+        <button id="exportBtn" class="btn primary" type="button" disabled data-i18n="export">生成并下载 JPEG</button>
+        <button id="shareBtn" class="btn" type="button" hidden data-i18n="share">分享 / 存储到照片</button>
+      </div>
+      <p id="exportInfo" class="muted small" hidden></p>
+      <div id="resultWrap" class="result" hidden>
+        <p class="small" data-i18n="longPress">iPhone：长按下图 →「存储到照片」，然后在 CVS / Walgreens App 里上传。</p>
+        <img id="resultImg" alt="exported sheet">
+      </div>
+    </section>
+  </div>
+
+  <section class="card tips" id="tips">
+    <h2><span class="num">?</span><span data-i18n="tipsTitle">冲印小贴士</span></h2>
+    <div data-i18n-html="tips"></div>
+  </section>
+</main>
+
+<footer class="footer small muted">
+  <span data-i18n="footer">纯静态网页，所有处理都在本地完成。</span>
+  · <a href="https://github.com/lfkdsk/id-photo-print">GitHub</a> · MIT
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
