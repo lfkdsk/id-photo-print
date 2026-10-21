@@ -53,14 +53,43 @@
       paper: '相纸', orient: '方向', orientAuto: '自动（放最多）', orientLand: '横向', orientPort: '竖向',
       gap: '间距', margin: '边距',
       compact: '放不下时自动缩小间距/边距，多放几张',
+      safe: '安全边距',
+      safeHelp: '无边距冲印（CVS 等）会把整张图放大几个百分点并裁掉纸边，外边距至少留这么多。',
+      safeHint: (o) => {
+        const fill = o.unsafeMarginMm < 0.5
+          ? `${o.unsafeMax} 张 ${o.short} 正好铺满整张 ${o.paper}`
+          : `最密排 ${o.unsafeMax} 张 ${o.short} 时外边距只有 ${o.unsafeMarginMm.toFixed(1)} mm`;
+        let s = `<p>${o.paper} 无边距打印会裁掉边缘、并把整张放大几个百分点；${fill}，不可能都安全。` +
+          `安全排版：本纸 <b>${o.safeCount} 张</b>。</p>`;
+        const sheets = o.safeCount > 0 ? `打印 ${Math.ceil(o.unsafeMax / o.safeCount)} 张 ${o.paper}` : '';
+        if (o.alt) s += `<p>要 ${o.unsafeMax} 张都能用：${o.altBtn}${sheets ? '，或' + sheets : ''}。</p>`;
+        else if (sheets) s += `<p>要 ${o.unsafeMax} 张都能用：${sheets}。</p>`;
+        return s;
+      },
+      switchTo: (p) => `改用 ${p}`,
+      unsafeWarn: (mm) => `⚠️ 安全边距已关闭：外边距只有 ${mm} mm。无边距冲印会放大并裁掉纸边，靠边的照片会被裁掉一部分、尺寸也会偏大，可能不能用。`,
+      calibTitle: '打印校准',
+      calibIntro: `<p>无边距冲印通常会把整张图放大 2–4%，印出来的照片就比标准大。校准方法：</p>
+<ol><li>先按当前设置导出并打印一次；</li>
+<li>用尺子量一张<b>中间</b>、四边都没被裁到的照片的宽度；</li>
+<li>把量到的数字填在下面，然后重新导出、打印。</li></ol>
+<p class="muted">工具会把照片（和间距）按「标准 ÷ 实测」缩小，外边距仍不小于安全边距。每种相纸分别记住。</p>`,
+      calibLabel: '印出来实际量到的边长 (mm)',
+      calibExpectedLabel: '标准边长（照片宽度）',
+      calibReset: '清除校准',
+      calibNone: '未校准，不补偿',
+      calibFactor: (pct, k) => `补偿 ${pct}（×${k}）`,
+      calibClamped: '（已限制在 −15% ~ +5% 之内，请确认量的是照片宽度）',
+      marginInfo: (mm) => `外边距 ≥ ${mm} mm`,
+      calibInfo: (pct) => `已校准 ${pct}`,
       cutlines: '灰色裁切线 / 裁切标记',
       mixed: '剩余空间用小尺寸填充', mixedSize: '填充尺寸',
       export: '生成并下载 JPEG', share: '分享 / 存储到照片', exporting: '生成中…',
-      longPress: 'iPhone：长按下图 →「存储到照片」（或点上面的分享按钮），然后在 CVS / Walgreens App 里上传冲印 4×6。',
+      longPress: 'iPhone：长按下图 →「存储到照片」（或点上面的分享按钮），然后在 CVS / Walgreens App 里上传，冲印和排版相同的尺寸（4×6 / 5×7），并关闭自动裁剪。',
       tipsTitle: '冲印小贴士', footer: '纯静态网页，所有处理都在本地完成。',
       countMain: (n, s) => `${n} 张 ${s}`,
       countMixed: (n, s) => ` + ${n} 张 ${s}`,
-      sheetInfo: (w, h, o) => `${w}×${h} px · 300 DPI · ${o}`,
+      sheetInfo: (w, h, o, extra) => `${w}×${h} px · 300 DPI · ${o}${extra}`,
       land: '横向', port: '竖向',
       compacted: '为了多放几张，间距/边距已自动缩小。',
       noFit: '这个尺寸放不进所选相纸。',
@@ -75,15 +104,30 @@
         ['rgba(59,110,245,.9)', '虚线椭圆 / 中线：头部大致位置，具体比例请查对应国家的要求'],
       ],
       tips: `
+<h3>先看这个：无边距冲印会裁边、会放大</h3>
+<ul>
+  <li>CVS / Walgreens 的 4×6 是<b>无边距</b>冲印：机器会把整张图放大几个百分点，超出纸边的部分直接裁掉。贴着纸边的照片会被切掉一圈，其余照片也会比标准大一点。</li>
+  <li>所以默认开启<b>安全边距 3 mm</b>（可改 0–8 mm）：外边距永远不小于它。美国 2×2 在 4×6 上默认排 <b>2 张</b>，两张都完整可用。</li>
+  <li>6 张 2×2 正好铺满 6×4 英寸，物理上不可能 6 张都完整。要 6 张能用的：改用 <b>5×7</b> 相纸（安全排版 6 张），或者打印 <b>3 张 4×6</b>。</li>
+  <li>美国护照申请（DS-11 / DS-82）只需要<b>1 张</b>照片；一张 4×6 上的 2 张已经够用，还多一张备用。</li>
+  <li>关掉安全边距可以回到「铺满」排法（4×6 上 6 张），但外圈照片会被裁，不建议。</li>
+</ul>
 <h3>在 CVS 冲印（约 $0.3–0.5 一张 4×6）</h3>
 <ol>
-  <li>点「生成并下载 JPEG」，得到一张 1800×1200 的 4×6 排版图（iPhone 可长按图片「存储到照片」）。</li>
-  <li>打开 CVS Photo 网站或 CVS App → Photo → <b>Prints</b>，选择 <b>4×6</b> 冲印（最便宜，通常可当天门店取件）。</li>
-  <li>上传这张图，<b>关闭</b>所有自动裁剪 / 自动增强 / “Fit / Fill” 之类的选项，保证比例不被缩放。</li>
+  <li>点「生成并下载 JPEG」，得到一张 300 DPI 的排版图（4×6 为 1800×1200 px；iPhone 可长按图片「存储到照片」）。</li>
+  <li>打开 CVS Photo 网站或 CVS App → Photo → <b>Prints</b>，选择和排版一致的尺寸（<b>4×6</b> 或 <b>5×7</b>），通常可当天门店取件。</li>
+  <li>上传这张图，<b>关闭</b>所有自动裁剪 / 自动增强 / “Fit / Fill” 之类的选项，保证比例不被改。</li>
   <li>亚光（Matte）或亮面（Glossy）都可以。</li>
-  <li>取件后用尺子量一下：美国照片每张应该正好 <b>2 英寸（51mm）</b>见方。然后沿灰色裁切线剪开。</li>
+  <li>取件后<b>一定用尺子量</b>：美国照片每张应该正好 <b>2 英寸（50.8 mm）</b>见方。偏大就用下面的「打印校准」。然后沿灰色裁切线剪开。</li>
 </ol>
-<p>Walgreens、Costco、Walmart 的 4×6 冲印同样可以，流程类似；不要选它们的「Passport Photo」服务（那个要 $15+）。</p>
+<h3>打印校准（印出来偏大怎么办）</h3>
+<ol>
+  <li>先按默认设置打印一次。</li>
+  <li>量一张<b>中间</b>、四边都没被裁到的照片的宽度，比如 52.3 mm。</li>
+  <li>在第 3 步展开「打印校准」，填入 52.3。工具会把照片和间距按 50.8 ÷ 52.3 缩小（补偿约 −2.9%），外边距仍不小于安全边距。</li>
+  <li>重新导出、再打印，再量一次。不同相纸（4×6 / 5×7 / A6）的放大比例可能不同，所以每种相纸分别记住。</li>
+</ol>
+<p>Walgreens、Costco、Walmart 的冲印同样可以，流程类似；不要选它们的「Passport Photo」服务（那个要 $15+）。</p>
 <h3>官方要求（美国护照 / 签证）</h3>
 <ul>
   <li>白色或米白色纯色背景，6 个月内拍摄。</li>
@@ -106,14 +150,43 @@
       paper: 'Paper', orient: 'Orientation', orientAuto: 'Auto (fit most)', orientLand: 'Landscape', orientPort: 'Portrait',
       gap: 'Gap', margin: 'Margin',
       compact: 'Shrink gap/margin automatically if it fits more photos',
+      safe: 'Safe margin',
+      safeHelp: 'Borderless prints (CVS etc.) enlarge the whole image a few percent and trim the paper edges — keep at least this much outer margin.',
+      safeHint: (o) => {
+        const fill = o.unsafeMarginMm < 0.5
+          ? `${o.unsafeMax} × ${o.short} exactly fill the whole ${o.paper} sheet`
+          : `packing ${o.unsafeMax} × ${o.short} leaves only ${o.unsafeMarginMm.toFixed(1)} mm of outer margin`;
+        let s = `<p>Borderless ${o.paper} prints trim the edges and enlarge the image a few percent; ${fill}, so they can't all be safe. ` +
+          `Safe layout: <b>${o.safeCount}</b> on this paper.</p>`;
+        const sheets = o.safeCount > 0 ? `print ${Math.ceil(o.unsafeMax / o.safeCount)} sheets of ${o.paper}` : '';
+        if (o.alt) s += `<p>To get ${o.unsafeMax} usable photos: ${o.altBtn}${sheets ? ', or ' + sheets : ''}.</p>`;
+        else if (sheets) s += `<p>To get ${o.unsafeMax} usable photos: ${sheets}.</p>`;
+        return s;
+      },
+      switchTo: (p) => `Use ${p}`,
+      unsafeWarn: (mm) => `⚠️ Safe margin is off: outer margin is only ${mm} mm. Borderless printing enlarges and trims the edges, so the outer photos will be cut and come out too large — they may be unusable.`,
+      calibTitle: 'Print calibration',
+      calibIntro: `<p>Borderless printing usually enlarges the whole image by 2–4%, so photos come out too big. To calibrate:</p>
+<ol><li>Export and print once with the current settings;</li>
+<li>With a ruler, measure the width of a <b>center</b> photo whose edges were not trimmed;</li>
+<li>Enter that number below, then export and print again.</li></ol>
+<p class="muted">Photos (and gaps) are scaled by expected ÷ measured; outer margins still stay ≥ the safe margin. Saved separately for each paper size.</p>`,
+      calibLabel: 'Measured edge length on the print (mm)',
+      calibExpectedLabel: 'Expected (photo width)',
+      calibReset: 'Reset',
+      calibNone: 'Not calibrated — no compensation',
+      calibFactor: (pct, k) => `Compensation ${pct} (×${k})`,
+      calibClamped: ' (limited to −15% … +5% — make sure you measured the photo width)',
+      marginInfo: (mm) => `margin ≥ ${mm} mm`,
+      calibInfo: (pct) => `calibrated ${pct}`,
       cutlines: 'Thin gray cut lines / crop marks',
       mixed: 'Fill leftover space with a smaller size', mixedSize: 'Filler size',
       export: 'Create & download JPEG', share: 'Share / Save to Photos', exporting: 'Rendering…',
-      longPress: 'iPhone: long-press the image below → "Save to Photos" (or use Share above), then upload it in the CVS / Walgreens app as a 4×6 print.',
+      longPress: 'iPhone: long-press the image below → "Save to Photos" (or use Share above), then upload it in the CVS / Walgreens app and order the same print size as the layout (4×6 / 5×7), with auto-crop off.',
       tipsTitle: 'Printing tips', footer: 'Static page — everything runs locally in your browser.',
       countMain: (n, s) => `${n} × ${s}`,
       countMixed: (n, s) => ` + ${n} × ${s}`,
-      sheetInfo: (w, h, o) => `${w}×${h} px · 300 DPI · ${o}`,
+      sheetInfo: (w, h, o, extra) => `${w}×${h} px · 300 DPI · ${o}${extra}`,
       land: 'landscape', port: 'portrait',
       compacted: 'Gap/margin were reduced automatically to fit more photos.',
       noFit: 'This photo size does not fit on the selected paper.',
@@ -128,15 +201,30 @@
         ['rgba(59,110,245,.9)', 'Dashed oval / center line: rough head position — check your country\'s exact rules'],
       ],
       tips: `
+<h3>Read this first: borderless prints are cropped and enlarged</h3>
+<ul>
+  <li>CVS / Walgreens 4×6 prints are <b>borderless</b>: the machine enlarges the whole image by a few percent and cuts off whatever falls past the paper edge. Photos touching the edge lose a strip, and the rest come out slightly too large.</li>
+  <li>That's why a <b>3 mm safe margin</b> is on by default (editable 0–8 mm): the outer margin never goes below it. US 2×2 on 4×6 therefore gives <b>2 photos</b>, both complete.</li>
+  <li>Six 2×2 photos fill 6×4 in exactly, so six usable photos on one 4×6 is physically impossible. Need 6? Use <b>5×7</b> paper (6 fit safely) or print <b>three 4×6 sheets</b>.</li>
+  <li>A US passport application (DS-11 / DS-82) needs only <b>1 photo</b>, so the 2 on one 4×6 already give you a spare.</li>
+  <li>Turning the safe margin off brings back edge-to-edge packing (6 on 4×6), but the outer photos will be trimmed — not recommended.</li>
+</ul>
 <h3>Printing at CVS (about $0.30–0.50 per 4×6)</h3>
 <ol>
-  <li>Tap "Create &amp; download JPEG" to get a 1800×1200 px 4×6 sheet (on iPhone, long-press the image → Save to Photos).</li>
-  <li>Open the CVS Photo website or the CVS app → Photo → <b>Prints</b> and pick a <b>4×6</b> print (cheapest, usually same-day in-store pickup).</li>
-  <li>Upload the sheet and turn <b>OFF</b> any auto-crop / auto-enhance / "fit / fill" options so the scale stays exact.</li>
+  <li>Tap "Create &amp; download JPEG" to get a 300 DPI sheet (1800×1200 px for 4×6; on iPhone, long-press the image → Save to Photos).</li>
+  <li>Open the CVS Photo website or the CVS app → Photo → <b>Prints</b> and pick the same size as the layout (<b>4×6</b> or <b>5×7</b>); usually same-day in-store pickup.</li>
+  <li>Upload the sheet and turn <b>OFF</b> any auto-crop / auto-enhance / "fit / fill" options so the scale isn't changed.</li>
   <li>Matte or glossy are both fine.</li>
-  <li>After pickup, check with a ruler: each US photo must be exactly <b>2 inches (51 mm)</b> square. Then cut along the gray lines.</li>
+  <li>After pickup, <b>always measure with a ruler</b>: each US photo must be exactly <b>2 inches (50.8 mm)</b> square. If it's too big, use Print calibration below. Then cut along the gray lines.</li>
 </ol>
-<p>Walgreens, Costco and Walmart 4×6 prints work the same way. Don't order their "Passport Photo" product — that's the $15+ one.</p>
+<h3>Print calibration (photos came out too big)</h3>
+<ol>
+  <li>Print once with the default settings.</li>
+  <li>Measure the width of a <b>center</b> photo whose edges weren't trimmed, e.g. 52.3 mm.</li>
+  <li>In step 3, open "Print calibration" and enter 52.3. Photos and gaps are scaled by 50.8 ÷ 52.3 (about −2.9%), and outer margins still stay ≥ the safe margin.</li>
+  <li>Export, print and measure again. Enlargement can differ per paper size (4×6 / 5×7 / A6), so it's saved per paper.</li>
+</ol>
+<p>Walgreens, Costco and Walmart prints work the same way. Don't order their "Passport Photo" product — that's the $15+ one.</p>
 <h3>Official requirements (US passport / visa)</h3>
 <ul>
   <li>Plain white or off-white background, taken within the last 6 months.</li>
@@ -168,6 +256,9 @@
     zoom: $('zoom'), zoomOut: $('zoomOut'), rot: $('rot'), rotOut: $('rotOut'), guides: $('guides'),
     resetCrop: $('resetCrop'), guideLegend: $('guideLegend'),
     paper: $('paper'), orient: $('orient'), gap: $('gap'), margin: $('margin'), compact: $('compact'),
+    safe: $('safe'), safeMm: $('safeMm'), safeHint: $('safeHint'), safeWarn: $('safeWarn'),
+    calib: $('calib'), calibBadge: $('calibBadge'), calibMeasured: $('calibMeasured'), calibExpected: $('calibExpected'),
+    calibFactor: $('calibFactor'), calibReset: $('calibReset'),
     cutlines: $('cutlines'), mixed: $('mixed'), mixedRow: $('mixedRow'), mixedPreset: $('mixedPreset'),
     sheetCanvas: $('sheetCanvas'), count: $('count'), sheetInfo: $('sheetInfo'), layoutNote: $('layoutNote'),
     exportBtn: $('exportBtn'), shareBtn: $('shareBtn'), exportInfo: $('exportInfo'),
@@ -191,18 +282,43 @@
   const currentPaper = () => PAPERS.find((x) => x.id === el.paper.value) || PAPERS[0];
   const mixedPreset = () => PRESETS.find((x) => x.id === el.mixedPreset.value) || PRESETS[2];
 
+  // ---------------------------------------------------------------- persistence
+  const store = {
+    get(k) { try { return localStorage.getItem('idphoto.' + k); } catch (_) { return null; } },
+    set(k, v) { try { if (v == null) localStorage.removeItem('idphoto.' + k); else localStorage.setItem('idphoto.' + k, v); } catch (_) { /* ignore */ } },
+  };
+
+  // ---------------------------------------------------------------- calibration
+  // Per paper: { measured, expected } in mm, i.e. a tile that should be `expected` wide printed `measured` wide.
+  let calib = {};
+  try { calib = JSON.parse(store.get('calib') || '{}') || {}; } catch (_) { calib = {}; }
+  const CAL_MIN = 0.85, CAL_MAX = 1.05;
+  function calibFor(paper) {
+    const c = calib[paper.id];
+    if (!c || !(c.measured > 0) || !(c.expected > 0)) return { k: 1, raw: 1, active: false };
+    const raw = c.expected / c.measured;
+    return { k: clamp(raw, CAL_MIN, CAL_MAX), raw, active: true };
+  }
+  const fmtPct = (k) => { const v = Math.round((k - 1) * 1000) / 10; return (v < 0 ? '−' : '+') + Math.abs(v).toFixed(1) + '%'; };
+  const fmtMm = (v) => String(Math.round(v * 10) / 10);
+
   // ---------------------------------------------------------------- layout
-  // Fit n tiles of size `size` along length L with preferred gap g and margin m (all px).
-  function fitAxis(L, size, g, m, compact) {
+  // Fit n tiles of size `size` along length L (all px). Preferred gap g / margin m; when `compact`,
+  // gap may shrink down to minGap and margin down to minMargin to fit more tiles.
+  function fitAxis(L, size, g, m, compact, minGap, minMargin) {
     let n = size <= L - 2 * m ? Math.floor((L - 2 * m + g) / (size + g) + 1e-9) : 0;
     let gap = g;
     let squeezed = false;
     if (compact) {
-      const n0 = Math.floor(L / size + 1e-9);
+      const n0 = size <= L - 2 * minMargin ? Math.floor((L - 2 * minMargin + minGap) / (size + minGap) + 1e-9) : 0;
       if (n0 > n) {
         n = n0; squeezed = true;
         const left = L - n * size;
-        gap = n > 1 ? Math.min(g, Math.floor(left / (n + 1))) : 0;
+        if (n > 1) {
+          const even = Math.floor(left / (n + 1));                        // gap == margin
+          const tight = Math.floor((left - 2 * minMargin) / (n - 1));     // margin pinned at minMargin
+          gap = Math.min(g, Math.max(minGap, Math.min(even, tight)));
+        }
       }
     }
     if (n <= 1) gap = 0;
@@ -220,23 +336,34 @@
     return out;
   }
 
-  function computeLayout() {
-    const paper = currentPaper();
+  const safeMmValue = () => clamp(num(el.safeMm, 3), 0, 8);
+
+  // `over` overrides UI settings: { paper, safe, compact, mixed }
+  function computeLayout(over = {}) {
+    const paper = over.paper || currentPaper();
     const preset = currentPreset();
+    const safe = over.safe != null ? over.safe : el.safe.checked;
+    const compact = over.compact != null ? over.compact : el.compact.checked;
+    const mixed = over.mixed != null ? over.mixed : el.mixed.checked;
+    const cal = calibFor(paper);
+    const k = cal.k;
     const long = mm2px(Math.max(paper.w, paper.h));
     const short = mm2px(Math.min(paper.w, paper.h));
-    const tw = mm2px(preset.w), th = mm2px(preset.h);
-    const g = mm2px(clamp(num(el.gap, 2), 0, 20));
-    const m = mm2px(clamp(num(el.margin, 2), 0, 20));
-    const compact = el.compact.checked;
+    const px = (mm) => Math.round((mm / MM_PER_IN) * DPI * k); // calibrated (pre-shrunk) size
+    const tw = px(preset.w), th = px(preset.h);
+    const g = px(clamp(num(el.gap, 2), 0, 20));
+    const safePx = safe ? mm2px(safeMmValue()) : 0;
+    const m = Math.max(mm2px(clamp(num(el.margin, 2), 0, 20)), safePx);
+    const minGap = safe ? Math.min(g, Math.max(1, px(0.5))) : 0;
+    const minMargin = safePx;
     const o = el.orient.value;
     const cands = [];
     if (o !== 'portrait') cands.push({ W: long, H: short, orient: 'landscape' });
     if (o !== 'landscape') cands.push({ W: short, H: long, orient: 'portrait' });
     let best = null;
     for (const c of cands) {
-      const ax = fitAxis(c.W, tw, g, m, compact);
-      const ay = fitAxis(c.H, th, g, m, compact);
+      const ax = fitAxis(c.W, tw, g, m, compact, minGap, minMargin);
+      const ay = fitAxis(c.H, th, g, m, compact, minGap, minMargin);
       const count = ax.n * ay.n;
       if (!best || count > best.count) best = { ...c, ax, ay, count };
     }
@@ -245,10 +372,10 @@
     let grids = best.count > 0 ? [main] : [];
 
     // Mixed mode: push the main grid to the top-left and fill the right / bottom strips.
-    if (el.mixed.checked && best.count > 0) {
+    if (mixed && best.count > 0) {
       const sp = mixedPreset();
-      const sw = mm2px(sp.w), sh = mm2px(sp.h);
-      const x0 = Math.min(ax.start, m), y0 = Math.min(ay.start, m);
+      const sw = px(sp.w), sh = px(sp.h);
+      const x0 = Math.max(Math.min(ax.start, m), minMargin), y0 = Math.max(Math.min(ay.start, m), minMargin);
       const gx = Math.max(ax.gap, g), gy = Math.max(ay.gap, g);
       const mainR = x0 + ax.used, mainB = y0 + ay.used;
       const extra = [];
@@ -257,7 +384,7 @@
       const rLen = W - m - rStart;
       if (rLen >= sw) {
         const nx = Math.floor((rLen + g) / (sw + g) + 1e-9);
-        const fy = fitAxis(H, sh, g, m, compact);
+        const fy = fitAxis(H, sh, g, m, compact, minGap, minMargin);
         if (nx > 0 && fy.n > 0) extra.push({ x0: rStart, y0: fy.start, nx, ny: fy.n, tw: sw, th: sh, gx: g, gy: fy.gap, preset: sp });
       }
       // bottom strip (under the main grid)
@@ -272,8 +399,24 @@
     }
     const tiles = grids.flatMap(gridTiles);
     const mainCount = best.count;
+    let minM = Infinity;
+    for (const r of tiles) minM = Math.min(minM, r.x, r.y, W - r.x - r.w, H - r.y - r.h);
+    if (!tiles.length) minM = 0;
     return { W, H, orient: best.orient, grids, tiles, mainCount, extraCount: tiles.length - mainCount,
-      preset, paper, squeezed: ax.squeezed || ay.squeezed };
+      preset, paper, squeezed: ax.squeezed || ay.squeezed, safe, safePx, k, cal, minMargin: minM };
+  }
+
+  // Compare the safe layout against the densest (unsafe) one and look for a paper that fits that many safely.
+  function safetyAdvice(layout) {
+    if (!layout.safe) return null;
+    const unsafe = computeLayout({ safe: false, compact: true, mixed: false });
+    if (unsafe.mainCount <= layout.mainCount) return null;
+    const cur = layout.paper;
+    const area = (p) => p.w * p.h;
+    const alt = PAPERS.filter((p) => p.id !== cur.id && area(p) >= area(cur))
+      .sort((a, b) => area(a) - area(b))
+      .find((p) => computeLayout({ paper: p, mixed: false }).mainCount >= unsafe.mainCount) || null;
+    return { unsafeMax: unsafe.mainCount, unsafeMarginMm: (unsafe.minMargin / DPI) * MM_PER_IN, safeCount: layout.mainCount, alt };
   }
 
   // ---------------------------------------------------------------- rendering
@@ -662,6 +805,7 @@
     cvs.height = Math.round(layout.H * scale);
     cvs.style.width = cssW + 'px';
     renderSheet(cvs.getContext('2d'), layout, scale, state.preview || null);
+    drawSafeZone(cvs.getContext('2d'), layout, scale);
     // count & info
     const total = layout.tiles.length;
     let txt = layout.mainCount > 0 ? t('countMain')(layout.mainCount, layout.preset.short[lang]) : '0';
@@ -669,11 +813,62 @@
     el.count.textContent = txt;
     el.count.dataset.count = String(layout.mainCount);
     el.count.dataset.total = String(total);
-    el.sheetInfo.textContent = t('sheetInfo')(layout.W, layout.H, t(layout.orient === 'landscape' ? 'land' : 'port'));
+    const marginMm = fmtMm((layout.minMargin / DPI) * MM_PER_IN);
+    let extra = layout.tiles.length ? ' · ' + t('marginInfo')(marginMm) : '';
+    if (layout.cal.active) extra += ' · ' + t('calibInfo')(fmtPct(layout.k));
+    el.sheetInfo.textContent = t('sheetInfo')(layout.W, layout.H, t(layout.orient === 'landscape' ? 'land' : 'port'), extra);
     const note = layout.mainCount === 0 ? t('noFit') : (layout.squeezed && el.compact.checked ? t('compacted') : '');
     el.layoutNote.hidden = !note;
     el.layoutNote.textContent = note;
     el.exportBtn.disabled = !state.src || layout.mainCount === 0;
+    renderSafety(layout);
+    renderCalib(layout);
+  }
+
+  // Preview only (never exported): dashed outline of the safe margin, orange when it's off.
+  function drawSafeZone(ctx, layout, scale) {
+    const inset = (layout.safe ? layout.safePx : mm2px(3)) * scale;
+    if (inset <= 0) return;
+    ctx.save();
+    ctx.strokeStyle = layout.safe ? 'rgba(59,110,245,.55)' : 'rgba(245,140,20,.9)';
+    ctx.lineWidth = Math.max(1, scale * 3);
+    ctx.setLineDash([6 * Math.max(1, scale * 3), 4 * Math.max(1, scale * 3)]);
+    ctx.strokeRect(inset, inset, layout.W * scale - 2 * inset, layout.H * scale - 2 * inset);
+    ctx.restore();
+  }
+
+  function renderSafety(layout) {
+    const adv = safetyAdvice(layout);
+    if (adv) {
+      const paperName = layout.paper.name[lang];
+      const altBtn = adv.alt ? `<button id="switchPaper" class="btn primary" type="button" data-paper="${adv.alt.id}">${t('switchTo')(adv.alt.name[lang])}</button>` : '';
+      el.safeHint.innerHTML = t('safeHint')({ ...adv, paper: paperName, short: layout.preset.short[lang], alt: adv.alt, altBtn });
+    }
+    el.safeHint.hidden = !adv;
+    el.safeHint.dataset.unsafeMax = adv ? String(adv.unsafeMax) : '';
+    const warn = !layout.safe && layout.tiles.length > 0 && layout.minMargin < mm2px(3);
+    el.safeWarn.hidden = !warn;
+    if (warn) el.safeWarn.textContent = t('unsafeWarn')(fmtMm((layout.minMargin / DPI) * MM_PER_IN));
+    el.safeMm.disabled = !el.safe.checked;
+  }
+
+  function renderCalib(layout) {
+    const cal = layout.cal;
+    el.calibExpected.textContent = `${fmtMm(layout.preset.w)} mm`;
+    el.calibFactor.textContent = cal.active
+      ? t('calibFactor')(fmtPct(cal.k), cal.k.toFixed(3)) + (cal.k !== cal.raw ? t('calibClamped') : '')
+      : t('calibNone');
+    el.calibBadge.textContent = cal.active ? fmtPct(cal.k) : '';
+    el.calibBadge.classList.toggle('on', cal.active);
+    el.calibReset.disabled = !cal.active;
+  }
+
+  // Show the stored measurement for the current paper, converted to the current photo width.
+  function syncCalibInput() {
+    const c = calib[currentPaper().id];
+    if (document.activeElement === el.calibMeasured) return;
+    el.calibMeasured.value = c && c.measured > 0 && c.expected > 0
+      ? fmtMm((currentPreset().w * c.measured) / c.expected) : '';
   }
 
   // ---------------------------------------------------------------- export
@@ -801,14 +996,51 @@
     clearExport();
     scheduleRender();
   }
-  el.preset.addEventListener('change', onPresetChange);
-  [el.customW, el.customH, el.customUnit].forEach((n) => n.addEventListener('input', onPresetChange));
+  el.preset.addEventListener('change', () => { onPresetChange(); syncCalibInput(); });
+  [el.customW, el.customH, el.customUnit].forEach((n) => n.addEventListener('input', () => { onPresetChange(); syncCalibInput(); }));
 
   [el.paper, el.orient, el.gap, el.margin, el.compact, el.cutlines, el.mixedPreset].forEach((n) => {
     n.addEventListener('input', () => { clearExport(); scheduleRender(); });
     n.addEventListener('change', () => { clearExport(); scheduleRender(); });
   });
   el.mixed.addEventListener('change', () => { el.mixedRow.hidden = !el.mixed.checked; clearExport(); scheduleRender(); });
+
+  // safe margin (persisted)
+  { const sv = store.get('safe'); if (sv === '0' || sv === '1') el.safe.checked = sv === '1';
+    const mv = parseFloat(store.get('safeMm')); if (Number.isFinite(mv)) el.safeMm.value = String(clamp(mv, 0, 8)); }
+  const onSafe = () => {
+    store.set('safe', el.safe.checked ? '1' : '0');
+    const v = parseFloat(el.safeMm.value);
+    if (Number.isFinite(v)) store.set('safeMm', String(clamp(v, 0, 8)));
+    clearExport(); scheduleRender();
+  };
+  el.safe.addEventListener('change', onSafe);
+  el.safeMm.addEventListener('input', onSafe);
+  el.safeMm.addEventListener('change', () => { el.safeMm.value = String(safeMmValue()); onSafe(); });
+  el.safeHint.addEventListener('click', (e) => {
+    const b = e.target.closest('#switchPaper');
+    if (!b) return;
+    el.paper.value = b.dataset.paper;
+    syncCalibInput();
+    clearExport(); scheduleRender();
+  });
+  el.paper.addEventListener('change', syncCalibInput);
+
+  // print calibration (persisted per paper)
+  const saveCalib = () => store.set('calib', JSON.stringify(calib));
+  el.calibMeasured.addEventListener('input', () => {
+    const v = parseFloat(el.calibMeasured.value);
+    const id = currentPaper().id;
+    if (Number.isFinite(v) && v > 0) calib[id] = { measured: v, expected: currentPreset().w };
+    else delete calib[id];
+    saveCalib(); clearExport(); scheduleRender();
+  });
+  el.calibReset.addEventListener('click', () => {
+    delete calib[currentPaper().id];
+    saveCalib();
+    el.calibMeasured.value = '';
+    clearExport(); scheduleRender();
+  });
 
   let resizeT = 0;
   window.addEventListener('resize', () => {
@@ -818,12 +1050,13 @@
 
   // ---------------------------------------------------------------- boot
   applyLang(true);
+  syncCalibInput();
   sizeEditor();
   renderAll();
 
   // small hook for automated tests / debugging
   window.__idphoto = {
-    layout: () => { const l = computeLayout(); return { W: l.W, H: l.H, orient: l.orient, main: l.mainCount, total: l.tiles.length, tiles: l.tiles.map(({ x, y, w, h }) => ({ x, y, w, h })) }; },
+    layout: () => { const l = computeLayout(); return { W: l.W, H: l.H, orient: l.orient, main: l.mainCount, total: l.tiles.length, safe: l.safe, k: l.k, minMargin: l.minMargin, tiles: l.tiles.map(({ x, y, w, h }) => ({ x, y, w, h })) }; },
     image: () => ({ w: state.imgW, h: state.imgH }),
     setCrop: (c) => { Object.assign(state.crop, c); syncCropUI(); scheduleRender(); },
     setJpegDpi,

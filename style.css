@@ -174,3 +174,29 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .tips .warn { padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, #f5a524 14%, transparent); font-size: 13.5px; }
 
 .footer { text-align: center; padding: 8px 16px 28px; }
+
+/* safe margin / borderless-print hints */
+.safe-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 4px; }
+.safe-row .switch { margin: 6px 0; font-weight: 600; }
+.safe-mm { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--muted); }
+.safe-mm input { width: 84px; padding: 6px 10px; }
+.help { margin: 0 0 6px; }
+.hint {
+  margin: 8px 0; padding: 10px 12px; border-radius: 10px; font-size: 13.5px;
+  background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.hint p { margin: 0 0 8px; }
+.hint p:last-child { margin-bottom: 0; }
+.hint .btn { padding: 6px 12px; font-size: 13px; border-radius: 10px; margin: 0 2px; }
+.warn-box {
+  margin: 8px 0; padding: 10px 12px; border-radius: 10px; font-size: 13.5px;
+  background: color-mix(in srgb, #f5a524 18%, transparent); border: 1px solid color-mix(in srgb, #f5a524 55%, transparent);
+  color: var(--text);
+}
+.calib { margin-top: 12px; border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; background: var(--field); }
+.calib summary { cursor: pointer; font-weight: 600; font-size: 14px; }
+.calib[open] summary { margin-bottom: 8px; }
+.calib ol { padding-left: 20px; margin: 6px 0; }
+.calib-out { font-size: 16px; padding: 9px 0; font-variant-numeric: tabular-nums; }
+.badge { font-weight: 600; font-size: 12px; color: var(--muted); margin-left: 6px; }
+.badge.on { color: var(--accent); }

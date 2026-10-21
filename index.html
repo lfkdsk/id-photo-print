@@ -100,6 +100,13 @@
         <div class="field"><label for="gap"><span data-i18n="gap">间距</span> (mm)</label><input id="gap" type="number" inputmode="decimal" min="0" max="20" step="0.5" value="2"></div>
         <div class="field"><label for="margin"><span data-i18n="margin">边距</span> (mm)</label><input id="margin" type="number" inputmode="decimal" min="0" max="20" step="0.5" value="2"></div>
       </div>
+      <div class="safe-row">
+        <label class="switch"><input id="safe" type="checkbox" checked><span data-i18n="safe">安全边距</span></label>
+        <span class="safe-mm"><input id="safeMm" type="number" inputmode="decimal" min="0" max="8" step="0.5" value="3" aria-label="safe margin mm"> mm</span>
+      </div>
+      <p class="muted small help" data-i18n="safeHelp">无边距冲印会放大整张图并裁掉边缘，外边距至少留这么多</p>
+      <div id="safeHint" class="hint" hidden></div>
+      <p id="safeWarn" class="warn-box" hidden></p>
       <label class="switch"><input id="compact" type="checkbox" checked><span data-i18n="compact">放不下时自动缩小间距/边距，多放几张</span></label>
       <label class="switch"><input id="cutlines" type="checkbox" checked><span data-i18n="cutlines">灰色裁切线 / 裁切标记</span></label>
       <label class="switch"><input id="mixed" type="checkbox"><span data-i18n="mixed">剩余空间用小尺寸填充</span></label>
@@ -113,6 +120,25 @@
       </div>
       <p class="count"><strong id="count" data-count="0">—</strong> <span id="sheetInfo" class="muted small"></span></p>
       <p id="layoutNote" class="muted small" hidden></p>
+
+      <details id="calib" class="calib">
+        <summary><span data-i18n="calibTitle">打印校准</span> <span id="calibBadge" class="badge"></span></summary>
+        <div class="small" data-i18n-html="calibIntro"></div>
+        <div class="row2">
+          <div class="field">
+            <label for="calibMeasured" data-i18n="calibLabel">印出来实际量到的边长 (mm)</label>
+            <input id="calibMeasured" type="number" inputmode="decimal" min="10" max="250" step="0.1" placeholder="—">
+          </div>
+          <div class="field">
+            <label data-i18n="calibExpectedLabel">标准边长</label>
+            <output id="calibExpected" class="calib-out">50.8 mm</output>
+          </div>
+        </div>
+        <div class="inline">
+          <span id="calibFactor" class="small"></span>
+          <button id="calibReset" class="btn ghost small" type="button" data-i18n="calibReset">清除校准</button>
+        </div>
+      </details>
     </section>
 
     <section class="card" id="stepExport">
