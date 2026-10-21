@@ -102,11 +102,15 @@
       </div>
       <div class="safe-row">
         <label class="switch"><input id="safe" type="checkbox" checked><span data-i18n="safe">安全边距</span></label>
-        <span class="safe-mm"><input id="safeMm" type="number" inputmode="decimal" min="0" max="8" step="0.5" value="3" aria-label="safe margin mm"> mm</span>
+      </div>
+      <div class="row2 safe-grid">
+        <div class="field"><label for="safeLong"><span data-i18n="safeLong">长边两端（左右）</span> (mm)</label><input id="safeLong" type="number" inputmode="decimal" min="0" max="10" step="0.5" value="3"></div>
+        <div class="field"><label for="safeShort"><span data-i18n="safeShort">短边两端（上下）</span> (mm)</label><input id="safeShort" type="number" inputmode="decimal" min="0" max="10" step="0.5" value="0"></div>
       </div>
       <p class="muted small help" data-i18n="safeHelp">无边距冲印会放大整张图并裁掉边缘，外边距至少留这么多</p>
       <div id="safeHint" class="hint" hidden></div>
       <p id="safeWarn" class="warn-box" hidden></p>
+      <p id="edgeNote" class="note-box small" hidden></p>
       <label class="switch"><input id="compact" type="checkbox" checked><span data-i18n="compact">放不下时自动缩小间距/边距，多放几张</span></label>
       <label class="switch"><input id="cutlines" type="checkbox" checked><span data-i18n="cutlines">灰色裁切线 / 裁切标记</span></label>
       <label class="switch"><input id="mixed" type="checkbox"><span data-i18n="mixed">剩余空间用小尺寸填充</span></label>
@@ -124,9 +128,25 @@
       <details id="calib" class="calib">
         <summary><span data-i18n="calibTitle">打印校准</span> <span id="calibBadge" class="badge"></span></summary>
         <div class="small" data-i18n-html="calibIntro"></div>
+        <div class="inline calib-sheet">
+          <button id="calibSheetBtn" class="btn small" type="button" data-i18n="calibSheetBtn">下载校准测试页</button>
+          <span id="calibSheetInfo" class="muted small"></span>
+        </div>
+        <img id="calibSheetImg" class="calib-img" alt="calibration test sheet" hidden>
+        <div class="field">
+          <label for="calibLine" data-i18n="calibLineLabel">中间 100 mm 线实际量到的长度 (mm)</label>
+          <input id="calibLine" type="number" inputmode="decimal" min="90" max="120" step="0.1" placeholder="100.0">
+        </div>
+        <p class="small calib-sub" data-i18n="calibTrimLabel">四边被裁掉的 mm（读测试页纸边处的刻度，可留空）</p>
+        <div class="row4">
+          <div class="field"><label for="trimTop" data-i18n="trimTop">上 TOP</label><input id="trimTop" type="number" inputmode="decimal" min="0" max="15" step="0.1" placeholder="—"></div>
+          <div class="field"><label for="trimBottom" data-i18n="trimBottom">下 BOTTOM</label><input id="trimBottom" type="number" inputmode="decimal" min="0" max="15" step="0.1" placeholder="—"></div>
+          <div class="field"><label for="trimLeft" data-i18n="trimLeft">左 LEFT</label><input id="trimLeft" type="number" inputmode="decimal" min="0" max="15" step="0.1" placeholder="—"></div>
+          <div class="field"><label for="trimRight" data-i18n="trimRight">右 RIGHT</label><input id="trimRight" type="number" inputmode="decimal" min="0" max="15" step="0.1" placeholder="—"></div>
+        </div>
         <div class="row2">
           <div class="field">
-            <label for="calibMeasured" data-i18n="calibLabel">印出来实际量到的边长 (mm)</label>
+            <label for="calibMeasured" data-i18n="calibLabel">或：印出来量到的照片边长 (mm)</label>
             <input id="calibMeasured" type="number" inputmode="decimal" min="10" max="250" step="0.1" placeholder="—">
           </div>
           <div class="field">
